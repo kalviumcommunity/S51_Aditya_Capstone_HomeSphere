@@ -1,0 +1,54 @@
+
+
+.form-container{
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+.primary-details{
+    display: flex;
+    justify-content: space-between;
+    background-color: rgb(139, 233, 240);
+    border: 1px solid black;
+    padding: 2%;
+}
+.left-details{
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    /* background-color: bisque; */
+    padding: 2%;
+
+}
+.left-bottom-details{
+    display: flex;
+    flex-direction: column;
+    /* background-color: rgb(3, 102, 102); */
+    padding: 2%;
+}
+.left-top-details{
+    /* background-color: burlywood; */
+    padding: 2%;
+
+}
+.right-details{
+    /* background-color: darkgrey; */
+    padding: 2%;
+
+}
+.right-bottom-details{
+    display: flex;
+    flex-direction: column;
+    /* background-color: seashell; */
+    padding: 2%;
+
+}
+.right-top-details{
+    /* background-color: skyblue; */
+    padding: 2%;
+
+}
+.secondary-details{
+    background-color: aqua;
+    padding: 4%;
+}
