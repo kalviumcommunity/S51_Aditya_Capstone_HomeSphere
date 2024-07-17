@@ -74,7 +74,7 @@ function ItemFormat() {
     const deleteBlock = (id) => {
         setBlocks(blocks.filter(block => block.id != id)); // Filter out the block with the specified id
     };
-    console.log(blocks)
+    // console.log(blocks)
 
     return (
         <div>

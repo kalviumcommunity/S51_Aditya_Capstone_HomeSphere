@@ -1,6 +1,7 @@
 import React from 'react';
 import { useAuth0 } from "@auth0/auth0-react";
 import { Link } from 'react-router-dom';
+import logo from '../assets/logo-no-background.png'
 import './Navbar.css'
 
 
@@ -16,6 +17,7 @@ function NavBar() {
         logout({ logoutParams: { returnTo: window.location.origin }})
         console.log("logged out")
     }
+    
 
     return (
         <>
@@ -31,7 +33,7 @@ function NavBar() {
                 
                 <div className='logo-container'>
                     <div>
-                    <img src="" alt="Website Logo" />
+                    <img src={logo} alt="Website Logo" />
                     </div>
                 </div>
 
@@ -46,13 +48,17 @@ function NavBar() {
                 <div className='additional-navitems-container'>
                     <div>
                         {isAuthenticated?(
-                            <button onClick={loggingout }>Log out</button>
+                            <button className='button-logout' onClick={loggingout }>Log out</button>
                         ):(
-                            <button onClick={() => loginWithRedirect() }>Sign In</button>
+                            <button className='button-loggin' onClick={() => loginWithRedirect() }>Sign In</button>
                         )}
                     </div>
-                    <div>
-                        <img src="" alt='profile'></img>
+                    <div className='profile-picture'>
+                        {isAuthenticated?(
+                            <img src={user.picture} alt='profile'></img>
+                        ):(
+                            <img src='' alt='profile images'/>
+                        )}
                     </div>
                 </div>
             </div> 
