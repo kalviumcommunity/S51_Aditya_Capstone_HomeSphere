@@ -1,0 +1,112 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+
+.whole{
+    padding: 0%;
+    margin: 0%;
+    box-sizing: border-box;
+    font-family: "Inter";
+    /* border: 1px solid black; */
+}
+
+.navbar {
+    display: flex;
+    width: 100%; 
+    height: 6vw;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); 
+    background-color: white; 
+    z-index: 1000; 
+    position: fixed;
+    top: 0;
+    right: 0;
+    align-items: center; 
+  }
+  
+
+.nav-items-container{
+    display: flex;
+    flex-direction: row;
+    flex: 1;
+    align-items: center;
+    /* justify-content: end; */
+    gap: 5%;
+    /* background-color: rgb(48, 137, 214); */
+
+}
+.nav-items{
+    display: flex;
+    flex-direction: row;
+    flex: 5;
+    height: 100%;
+    align-items: center;
+    justify-content: end;
+    gap: 4%;
+    
+    /* background-color: brown; */
+}
+.get-started{
+    width: 10vw;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    /* background-color: rgb(151, 62, 62); */
+}
+.btn-get-started{
+    border: none;
+    background-color: #F69B17; 
+    padding: 2% 9%;
+    width: 8vw;
+    height: 6vh;
+    border-radius: 40px;
+}
+.logo-container{
+    width: 16vw;
+    height: 100%;
+    /* background-color: pink; */
+}
+.logo-container img{
+    width: 100%;
+    height: 60%;
+    margin-left: 5vw;
+    margin: auto auto;
+
+}
+
+.first-look {
+    display: flex;
+    justify-content: space-around;
+    background: linear-gradient( #f8eee180 67.97%, #f69b174d 99.61%);
+    width: 100vw;
+    height: 85vh;
+    align-items: center;
+    margin-top: 6vw; /* Offset the height of the navbar */
+}
+
+.first-look-img-container{
+    /* border: 1px solid black; */
+    width: 35vw;
+    /* height: 30vw; */
+}
+.first-look-img{
+    width: 35vw;
+    height: 35vw;
+}
+.head-text h1{
+    font-size: 70px;
+    opacity: .67;
+    margin: 5vw 0 0 0;
+}
+.head-text h3{
+    font-size: 25px;
+    opacity: .5 ;
+    margin: 1vw 0 2vw 0;
+}
+
+.login-second{
+    border: none;
+    background-color: #F69B17; 
+    padding: 2.5% 4.5%;
+    border-radius: 60px;
+    font-size: 15px;
+}
+
+  
