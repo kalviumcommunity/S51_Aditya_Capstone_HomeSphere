@@ -1,17 +1,15 @@
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import axios from 'axios'; // Import Axios
-import './ItemFormat.css'
+import axios from 'axios';
+import './ItemFormat.css';
 
 function ItemFormat() {
     const { register, handleSubmit, formState: { errors } } = useForm();
-    const [data, setData] = useState(null);
-    const [imagePreviews, setImagePreviews] = useState([]); // State to store the selected image URLs
-    const [price, setPrice] = useState()
-    const [units, setUnits] = useState()
+    const [imagePreviews, setImagePreviews] = useState([]);
+    const [images, setImages] = useState([]);
+    const [price, setPrice] = useState();
+    const [units, setUnits] = useState();
     const [blocks, setBlocks] = useState([{ id: 1, units: '', location: '', specificity: '' }]);
-
-    
 
     const postData = (data) => {
         const formData = new FormData();
@@ -21,16 +19,13 @@ function ItemFormat() {
         formData.append('boughtDate', data.boughtDate);
         formData.append('expiriyDate', data.expiriyDate);
         formData.append('guarantee', data.guarantee);
-        // formData.append('gifted', data.gifted ? 'true' : 'false');
         formData.append('productLink', data.productLink);
         formData.append('blocks', JSON.stringify(blocks));
-    
-        // Append the image file if present
-        if (data.image && data.image[0]) {
-            const imageUrl = URL.createObjectURL(data.image[0]);
-            formData.append('image', imageUrl);
-        }
-    
+
+        images.forEach((image) => {
+            formData.append('images', image);
+        });
+
         axios.post('http://localhost:3000/inventory', formData, {
             headers: {
                 'Content-Type': 'multipart/form-data'
@@ -45,47 +40,43 @@ function ItemFormat() {
     };
 
     const onSubmit = (data) => {
-        setData(data);
         postData(data);
     };
 
-    // Handler for file input change
     const handleImageChange = (e) => {
-        const files = e.target.files;
-        let previews = [];
-        for (let i = 0; i < files.length; i++) {
-            previews.push(URL.createObjectURL(files[i]));
-        }
-        setImagePreviews(previews);
+        const files = Array.from(e.target.files);
+        setImages(prev => [...prev, ...files]);
+
+        const previews = files.map(file => URL.createObjectURL(file));
+        setImagePreviews(prev => [...prev, ...previews]);
     };
 
     const handleAmount = (e) => {
-        setPrice(e.target.value)
-    }
+        setPrice(e.target.value);
+    };
+
     const handleUnits = (e) => {
-        setUnits(e.target.value)
-    }
+        setUnits(e.target.value);
+    };
+
     const handleBlockChange = (id, field, value) => {
         setBlocks(blocks.map(block => block.id === id ? { ...block, [field]: value } : block));
-    };    
+    };
+
     const addBlock = () => {
-        setBlocks([...blocks, { id: blocks.length + 1 }]); // Add a new block with a unique id
+        setBlocks([...blocks, { id: blocks.length + 1 }]);
     };
+
     const deleteBlock = (id) => {
-        setBlocks(blocks.filter(block => block.id != id)); // Filter out the block with the specified id
+        setBlocks(blocks.filter(block => block.id !== id));
     };
-    // console.log(blocks)
 
     return (
         <div>
-            <form onSubmit={handleSubmit(onSubmit)}> {/* Use onSubmit */}
-
+            <form onSubmit={handleSubmit(onSubmit)}>
                 <div className='form-container'>
-
                     <div className='primary-details'>
-
                         <div className='left-details'>
-                            
                             <div className='left-top-details'>
                                 <div>
                                     <label htmlFor='itemName'>Enter your item name</label>
@@ -121,33 +112,32 @@ function ItemFormat() {
                                 </div>
                                 <div>
                                     {price && units ? 
-                                    <input value={price * units}></input> : price }
+                                    <input value={price * units} readOnly /> : price }
                                 </div>
                             </div>
 
                             <div className='left-bottom-details'>
                                 <input type='date' placeholder='enter date' {
-                                    ...register("boughtDate", )
+                                    ...register("boughtDate")
                                 }></input>
                                 <input type='date' placeholder='enter date' {
                                     ...register("expiriyDate", {
                                         required :true
                                     })
                                 }></input>
-                                <input type='text' placeholder='enter in years, months, days' {...register("guarantee", )}></input>
+                                <input type='text' placeholder='enter in years, months, days' {...register("guarantee")}></input>
                             </div>
                         </div>
-
 
                         <div className='right-details'>
                             <div className='right-top-details'>
                                 <div>
-                                    <label htmlFor='image'>Upload Image</label>
+                                    <label htmlFor='images'>Upload Images</label>
                                     <input
                                         type='file'
-                                        id='image'
-                                        {...register("image")}
-                                        onChange={handleImageChange} // Attach the handler to the input change event
+                                        id='images'
+                                        multiple
+                                        onChange={handleImageChange}
                                     />
                                 </div>
                                 {imagePreviews.length > 0 && (
@@ -159,17 +149,13 @@ function ItemFormat() {
                                 )}
                             </div>
                             <div className='right-bottom-details'>
-                                {/* <label>
-                                    <input type='checkbox' {...register("gifted")} />
-                                    Gifted
-                                </label> */}
                                 <input type='text' placeholder='Product link' {...register("productLink")} />
                             </div>
                         </div>
                     </div>
 
                     <div className='secondary-details'>
-                    <button type="button" onClick={addBlock}>Add</button>
+                        <button type="button" onClick={addBlock}>Add</button>
                         {blocks.map((block) => (
                             <div key={block.id} className="block">
                                 <input 
@@ -193,27 +179,10 @@ function ItemFormat() {
                                 <button type="button" onClick={() => deleteBlock(block.id)}>Delete</button>
                             </div>
                         ))}
-
                     </div>
-                    {/* <div>
-                        {blocks && blocks.forEach(block => {
-                            <div>
-                                <p>{block.units}</p>
-                                <p>{block.location}</p>
-                            </div>
-                            
-                        })}
-                    </div> */}
-                    {/* <div>
-                        {blocks[0].units}
-                    </div> */}
-
                 </div>
-                <button type='submit'>Submit</button> {/* Add submit button */}
-
-                
+                <button type='submit'>Submit</button>
             </form>
-            
         </div>
     );
 }

@@ -1,68 +1,69 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const dotenv = require('dotenv').config();
-const Item = require('./Modals/Item'); // Make sure the path is correct
-const cors = require('cors');
+const Grid = require('gridfs-stream');
+const { GridFsStorage } = require('multer-gridfs-storage');
 const multer = require('multer');
+const { GridFSBucket } = require('mongodb');
+const crypto = require('crypto');
 const path = require('path');
+const cors = require('cors');
 
-const app = express();
 const port = 3000;
+const app = express();
 
-// Middleware to parse JSON bodies
-app.use(express.json());
 app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// Setup multer for file uploads
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, 'uploads/');
-    },
-    filename: (req, file, cb) => {
-        cb(null, Date.now() + path.extname(file.originalname));
-    }
-});
-const upload = multer({ storage: storage });
+const mongoURI = "mongodb+srv://adityakannur:Aditya252004@cluster0.5zhqbdd.mongodb.net/FunniestAds_Database?retryWrites=true&w=majority";
 
-app.post('/inventory', upload.single('image'), async (req, res) => {
-    try {
-        const blocks = JSON.parse(req.body.blocks);
+const conn = mongoose.createConnection(mongoURI);
 
-        const newItem = new Item({
-            name: req.body.itemName,
-            amount: req.body.amount,
-            units: req.body.units,
-            date : {
-                boughtDate: req.body.boughtDate,
-                expiriyDate: req.body.expiriyDate,
-                guarantee: req.body.guarantee,
-            },
-            image: req.body.image ? req.body.image : '', // Adjusted to check if file exists
-            // gifted: req.body.gifted === 'true', // Convert to boolean
-            productLink: req.body.productLink,
-            blocks: blocks.map(block => ({
-                units: block.units,
-                location: block.location,
-                specificity: block.specificity
-            }))
-        });
+let gfs, gridFsBucket;
 
-        await newItem.save();
-
-        res.status(201).send({ message: 'success', data: newItem });
-    } catch (err) {
-        res.status(400).send({ message: 'error', error: err });
-    }
+conn.once('open', () => {
+    gfs = Grid(conn.db, mongoose.mongo);
+    gridFsBucket = new GridFSBucket(conn.db, { bucketName: 'uploads' });
+    gfs.collection('uploads');
 });
 
-
-mongoose.connect(process.env.DATA_URI, { useNewUrlParser: true, useUnifiedTopology: true })
-    .then(() => {
-        console.log('connected to DB');
-        app.listen(port, function () {
-            console.log(`Listening on http://localhost:${port}`);
+const storage = new GridFsStorage({
+    url: mongoURI,
+    file: (req, file) => {
+        return new Promise((resolve, reject) => {
+            crypto.randomBytes(16, (err, buf) => {
+                if (err) {
+                    return reject(err);
+                }
+                const filename = buf.toString('hex') + path.extname(file.originalname);
+                const fileInfo = {
+                    filename: filename,
+                    bucketName: 'uploads',
+                    metadata: {
+                        originalname: file.originalname,
+                        itemName: req.body.itemName,
+                        amount: req.body.amount,
+                        units: req.body.units,
+                        boughtDate: req.body.boughtDate,
+                        expiriyDate: req.body.expiriyDate,
+                        guarantee: req.body.guarantee,
+                        productLink: req.body.productLink,
+                        blocks: JSON.parse(req.body.blocks)
+                    }
+                };
+                resolve(fileInfo);
+            });
         });
-    })
-    .catch((error) => {
-        console.log('error connecting to DB', error);
-    });
+    }
+});
+
+const upload = multer({ storage });
+
+app.post('/inventory', upload.array('images', 12), (req, res) => { 
+    res.json({ files: req.files });
+    console.log("Files uploaded with data:", req.body);
+});
+
+app.listen(port, () => {
+    console.log(`Listening on port ${port}`);
+});
