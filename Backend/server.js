@@ -64,6 +64,19 @@ app.post('/inventory', upload.array('images', 12), (req, res) => {
     console.log("Files uploaded with data:", req.body);
 });
 
+app.get('/inventory', async (req, res) => {
+    try {
+        const files = await gfs.files.find().toArray();
+        if (!files || files.length === 0) {
+            return res.status(404).send('No files found');
+        }
+        res.status(200).json(files);
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Server error');
+    }
+});
+
 app.listen(port, () => {
     console.log(`Listening on port ${port}`);
 });
