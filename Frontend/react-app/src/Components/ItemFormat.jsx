@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import axios from 'axios';
 import './ItemFormat.css';
@@ -10,6 +10,7 @@ function ItemFormat() {
     const [price, setPrice] = useState();
     const [units, setUnits] = useState();
     const [blocks, setBlocks] = useState([{ id: 1, units: '', location: '', specificity: '' }]);
+    const [files, setFiles] = useState([]);
 
     const postData = (data) => {
         const formData = new FormData();
@@ -41,7 +42,22 @@ function ItemFormat() {
 
     const onSubmit = (data) => {
         postData(data);
+
     };
+
+    const getData = async () => {
+        try {
+            const res = await axios.get('http://localhost:3000/inventory'); // Ensure this matches your backend URL
+            setFiles(res.data);
+            console.log(res.data);
+        } catch (err) {
+            console.error('Error fetching files:', err);
+        }
+    };
+
+    useEffect(() => {
+        getData();
+    }, []);
 
     const handleImageChange = (e) => {
         const files = Array.from(e.target.files);
