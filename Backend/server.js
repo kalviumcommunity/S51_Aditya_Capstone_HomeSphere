@@ -7,15 +7,16 @@ const { GridFSBucket } = require('mongodb');
 const crypto = require('crypto');
 const path = require('path');
 const cors = require('cors');
+require('dotenv').config();
 
-const port = 5000;
+const port = process.env.PORT;
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-const mongoURI = "mongodb+srv://adityakannur:Aditya252004@cluster0.5zhqbdd.mongodb.net/Capstone_Database?retryWrites=true&w=majority";
+const mongoURI = process.env.DATA_URI
 
 // Create MongoDB connection
 const conn = mongoose.createConnection(mongoURI);
@@ -64,8 +65,8 @@ const upload = multer({ storage });
 
 // File upload endpoint
 app.post('/upload', upload.single('images'), (req, res) => {
-    console.log(req.body); // Log the body to see if the metadata is coming through
-    console.log(req.file); // Log the file object
+    console.log(req.body); 
+    console.log(req.file); 
     res.json({ file: req.file });
 });
 

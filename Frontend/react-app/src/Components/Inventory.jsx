@@ -1,17 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
-import NavBar from './Navbar';
 import './Inventory.css';
 import ItemFormat from './ItemFormat';
-import { Link } from 'react-router-dom';
 import axios from 'axios';
 
 const initialState = [
   { category: 'Electronics', data: 'Laptop', amount: 10, second: 'pcs' },
-//   { category: 'Furniture', data: 'Chair', amount: 20, units: 'units' },
 ];
 
 const categories = ['Electronics', 'Furniture', 'Clothing', 'Tools' ]; // Define sidebar categories
-const subcategories = ['Expired', 'Some Other Thing']; // Define sidebar subcategories
+const subcategories = ['Expired']; // Define sidebar subcategories
 
 function Inventory() {
   const [inventoryItems, setInventoryItems] = useState(initialState);
@@ -21,17 +18,6 @@ function Inventory() {
   const [files, setFiles] = useState()
   const [images, setImages] = useState([]);
 
-
-
-
-  // Fetch data from an API or local storage (if not using initial state)
-  // useEffect(() => {
-  //   // Implement data fetching logic here
-  //   // e.g., fetch('https://your-api.com/inventory')
-  //   //   .then(response => response.json())
-  //   //   .then(data => setInventoryItems(data));
-  //   getData()
-  // }, []);
 
   const handleSearchChange = (event) => {
     setSearchTerm(event.target.value.toLowerCase());
@@ -82,12 +68,6 @@ function Inventory() {
         setIsModalOpen(prevState => !prevState);
     };
 
-    const getImageUrl = (filename) => {
-      // Remove the file extension (e.g., ".png")
-      const baseName = filename.split('.').slice(0, -1).join('.');
-      return `http://localhost:3000/images/${baseName}`;
-  };
-
   return (
     <div className="inventory-container">
       {/* <NavBar /> */}
@@ -118,7 +98,6 @@ function Inventory() {
               onChange={handleSearchChange}
             />
           </div>
-          {/* <Link to='/item'><button onClick={handleAddItem}>Add Item</button></Link> */}
           <div>
             <h1>Inventory</h1>
             <button onClick={toggleModal}>Add Item</button>
