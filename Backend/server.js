@@ -7,24 +7,27 @@ const { GridFSBucket } = require('mongodb');
 const crypto = require('crypto');
 const path = require('path');
 const cors = require('cors');
+require('dotenv').config();
 
-const port = 3000;
+const port = process.env.PORT;
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-const mongoURI = "mongodb+srv://adityakannur:Aditya252004@cluster0.5zhqbdd.mongodb.net/FunniestAds_Database?retryWrites=true&w=majority";
+const mongoURI = process.env.DATA_URI
 
+// Create MongoDB connection
 const conn = mongoose.createConnection(mongoURI);
 
+// Initialize GridFS
 let gfs, gridFsBucket;
 
 conn.once('open', () => {
     gfs = Grid(conn.db, mongoose.mongo);
-    gridFsBucket = new GridFSBucket(conn.db, { bucketName: 'uploads' });
-    gfs.collection('uploads');
+    gridFsBucket = new GridFSBucket(conn.db, { bucketName: 'final' });
+    gfs.collection('final');
 });
 
 const storage = new GridFsStorage({
@@ -38,7 +41,7 @@ const storage = new GridFsStorage({
                 const filename = buf.toString('hex') + path.extname(file.originalname);
                 const fileInfo = {
                     filename: filename,
-                    bucketName: 'uploads',
+                    bucketName: 'final',
                     metadata: {
                         originalname: file.originalname,
                         itemName: req.body.itemName,
@@ -59,11 +62,16 @@ const storage = new GridFsStorage({
 
 const upload = multer({ storage });
 
-app.post('/inventory', upload.array('images', 12), (req, res) => { 
-    res.json({ files: req.files });
-    console.log("Files uploaded with data:", req.body);
+
+// File upload endpoint
+app.post('/upload', upload.single('images'), (req, res) => {
+    console.log(req.body); 
+    console.log(req.file); 
+    res.json({ file: req.file });
 });
 
+
+// Fetch all inventory files
 app.get('/inventory', async (req, res) => {
     try {
         const files = await gfs.files.find().toArray();
@@ -74,6 +82,29 @@ app.get('/inventory', async (req, res) => {
     } catch (err) {
         console.error(err);
         res.status(500).send('Server error');
+    }
+});
+
+// Serve image files
+app.get('/image/:filename', async (req, res) => {
+    try {
+        const file = await gfs.files.findOne({ filename: req.params.filename });
+
+        if (!file || file.length === 0) {
+            return res.status(404).json({ err: 'No file exists' });
+        }
+
+        // Check if the file is an image
+        if (file.contentType === 'image/jpeg' || file.contentType === 'image/png') {
+            const readStream = gridFsBucket.openDownloadStreamByName(file.filename);
+            res.set('Content-Type', file.contentType);
+            readStream.pipe(res);
+        } else {
+            return res.status(404).json({ err: 'Not an image' });
+        }
+    } catch (err) {
+        console.error('Error finding file:', err);
+        res.status(500).json({ err: 'Server error' });
     }
 });
 

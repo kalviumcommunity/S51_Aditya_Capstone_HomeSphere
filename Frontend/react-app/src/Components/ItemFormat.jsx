@@ -1,19 +1,32 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import axios from 'axios';
-import './ItemFormat.css';
 
 function ItemFormat() {
     const { register, handleSubmit, formState: { errors } } = useForm();
-    const [imagePreviews, setImagePreviews] = useState([]);
-    const [images, setImages] = useState([]);
-    const [price, setPrice] = useState();
-    const [units, setUnits] = useState();
+    const [selectedFile, setSelectedFile] = useState(null);
+    const [uploadSuccess, setUploadSuccess] = useState(false);
+    // const [images, setImages] = useState([]);
     const [blocks, setBlocks] = useState([{ id: 1, units: '', location: '', specificity: '' }]);
-    const [files, setFiles] = useState([]);
 
-    const postData = (data) => {
+    // Fetch the list of images from the server
+    // useEffect(() => {
+    //     const fetchImages = async () => {
+    //         try {
+    //             const response = await axios.get('http://localhost:5000/inventory');
+    //             setImages(response.data);
+    //             console.log('Fetched Images:', response.data);
+    //         } catch (error) {
+    //             console.error('Error fetching images:', error);
+    //         }
+    //     };
+
+    //     fetchImages();
+    // }, []);
+
+    const onSubmit = async (data) => {
         const formData = new FormData();
+        formData.append('images', selectedFile);
         formData.append('itemName', data.itemName);
         formData.append('amount', data.amount);
         formData.append('units', data.units);
@@ -23,56 +36,30 @@ function ItemFormat() {
         formData.append('productLink', data.productLink);
         formData.append('blocks', JSON.stringify(blocks));
 
-        images.forEach((image) => {
-            formData.append('images', image);
-        });
+        // selectedFile.forEach((image) => {
+        //     formData.append('images', image);
+        // });
 
-        axios.post('http://localhost:3000/inventory', formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data'
-            }
-        })
-        .then((res) => {
-            console.log(res);
-        })
-        .catch((err) => {
-            console.log("error", err);
-        });
-    };
-
-    const onSubmit = (data) => {
-        postData(data);
-
-    };
-
-    const getData = async () => {
         try {
-            const res = await axios.get('http://localhost:3000/inventory'); // Ensure this matches your backend URL
-            setFiles(res.data);
-            console.log(res.data);
-        } catch (err) {
-            console.error('Error fetching files:', err);
+            const response = await axios.post('http://localhost:5000/upload', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
+
+            if (response.status === 200) {
+                setUploadSuccess(true);
+                console.log('File uploaded successfully:', response.data);
+            } else {
+                console.error('Failed to upload file');
+            }
+        } catch (error) {
+            console.error('Error during upload:', error);
         }
     };
 
-    useEffect(() => {
-        getData();
-    }, []);
-
-    const handleImageChange = (e) => {
-        const files = Array.from(e.target.files);
-        setImages(prev => [...prev, ...files]);
-
-        const previews = files.map(file => URL.createObjectURL(file));
-        setImagePreviews(prev => [...prev, ...previews]);
-    };
-
-    const handleAmount = (e) => {
-        setPrice(e.target.value);
-    };
-
-    const handleUnits = (e) => {
-        setUnits(e.target.value);
+    const handleFileChange = (e) => {
+        setSelectedFile(e.target.files[0]);
     };
 
     const handleBlockChange = (id, field, value) => {
@@ -80,7 +67,7 @@ function ItemFormat() {
     };
 
     const addBlock = () => {
-        setBlocks([...blocks, { id: blocks.length + 1 }]);
+        setBlocks([...blocks, { id: blocks.length + 1, units: '', location: '', specificity: '' }]);
     };
 
     const deleteBlock = (id) => {
@@ -89,116 +76,157 @@ function ItemFormat() {
 
     return (
         <div>
+            <h2>Upload Item</h2>
             <form onSubmit={handleSubmit(onSubmit)}>
-                <div className='form-container'>
-                    <div className='primary-details'>
-                        <div className='left-details'>
-                            <div className='left-top-details'>
-                                <div>
-                                    <label htmlFor='itemName'>Enter your item name</label>
-                                    <input
-                                        type='text'
-                                        placeholder='enter item name'
-                                        id='itemName'
-                                        {...register("itemName", { required: true })}
-                                    />
-                                    {errors.itemName && <span>This field is required</span>}
-                                </div>
-                                <div>
-                                    <label htmlFor='amount'>Enter amount</label>
-                                    <input
-                                        type='number'
-                                        placeholder='enter amount'
-                                        id='amount'
-                                        onInput={handleAmount}
-                                        {...register("amount", { required: true })}
-                                    />
-                                    {errors.amount && <span>This field is required</span>}
-                                </div>
-                                <div>
-                                    <label htmlFor='units'>Enter units</label>
-                                    <input
-                                        type='number'
-                                        placeholder='enter units'
-                                        id='units'
-                                        onInput={handleUnits}
-                                        {...register("units", { required: true })}
-                                    />
-                                    {errors.units && <span>This field is required</span>}
-                                </div>
-                                <div>
-                                    {price && units ? 
-                                    <input value={price * units} readOnly /> : price }
-                                </div>
-                            </div>
-
-                            <div className='left-bottom-details'>
-                                <input type='date' placeholder='enter date' {
-                                    ...register("boughtDate")
-                                }></input>
-                                <input type='date' placeholder='enter date' {
-                                    ...register("expiriyDate", {
-                                        required :true
-                                    })
-                                }></input>
-                                <input type='text' placeholder='enter in years, months, days' {...register("guarantee")}></input>
-                            </div>
-                        </div>
-
-                        <div className='right-details'>
-                            <div className='right-top-details'>
-                                <div>
-                                    <label htmlFor='images'>Upload Images</label>
-                                    <input
-                                        type='file'
-                                        id='images'
-                                        multiple
-                                        onChange={handleImageChange}
-                                    />
-                                </div>
-                                {imagePreviews.length > 0 && (
-                                    <div>
-                                        {imagePreviews.map((preview, index) => (
-                                            <img key={index} src={preview} alt="Selected" style={{ width: '200px', height: 'auto' }} />
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                            <div className='right-bottom-details'>
-                                <input type='text' placeholder='Product link' {...register("productLink")} />
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className='secondary-details'>
-                        <button type="button" onClick={addBlock}>Add</button>
-                        {blocks.map((block) => (
-                            <div key={block.id} className="block">
-                                <input 
-                                    type="number" 
-                                    placeholder="Enter units" 
-                                    value={block.units}
-                                    onChange={(e) => handleBlockChange(block.id, 'units', e.target.value)}
-                                />
-                                <input 
-                                    type='text' 
-                                    placeholder='Enter the location'
-                                    value={block.location}
-                                    onChange={(e) => handleBlockChange(block.id, 'location', e.target.value)}
-                                />
-                                <input 
-                                    type="text" 
-                                    placeholder="Enter specificity about it/them" 
-                                    value={block.specificity}
-                                    onChange={(e) => handleBlockChange(block.id, 'specificity', e.target.value)}
-                                />
-                                <button type="button" onClick={() => deleteBlock(block.id)}>Delete</button>
-                            </div>
-                        ))}
-                    </div>
+                <div>
+                    <label htmlFor='itemName'>Enter your item name</label>
+                    <input
+                        type='text'
+                        placeholder='enter item name'
+                        id='itemName'
+                        {...register("itemName", { required: true })}
+                    />
+                    {errors.itemName && <span>This field is required</span>}
                 </div>
-                <button type='submit'>Submit</button>
+
+                <div>
+                    <label htmlFor='amount'>Enter amount</label>
+                    <input
+                        type='number'
+                        placeholder='enter amount'
+                        id='amount'
+                        {...register("amount", { required: true })}
+                    />
+                    {errors.amount && <span>This field is required</span>}
+                </div>
+
+                <div>
+                    <label htmlFor='units'>Enter units</label>
+                    <input
+                        type='number'
+                        placeholder='enter units'
+                        id='units'
+                        {...register("units", { required: true })}
+                    />
+                    {errors.units && <span>This field is required</span>}
+                </div>
+
+                <div>
+                    <label htmlFor='boughtDate'>Bought Date</label>
+                    <input type='date' {...register("boughtDate")} />
+                </div>
+
+                <div>
+                    <label htmlFor='expiriyDate'>Expiry Date</label>
+                    <input type='date' {...register("expiriyDate", { required: true })} />
+                    {errors.expiriyDate && <span>This field is required</span>}
+                </div>
+
+                <div>
+                    <label htmlFor='guarantee'>Guarantee (years, months, days)</label>
+                    <input type='text' placeholder='enter guarantee period' {...register("guarantee")} />
+                </div>
+
+                <div>
+                    <label htmlFor='productLink'>Product Link</label>
+                    <input type='text' placeholder='Product link' {...register("productLink")} />
+                </div>
+
+                <div>
+                    <label htmlFor='images'>Upload Images</label>
+                    <input
+                        type='file'
+                        id='images'
+                        {...register('images')}
+                        onChange={handleFileChange}
+                    />
+                </div>
+
+                <div className='blocks-section'>
+                    <h3>Blocks</h3>
+                    <button type="button" onClick={addBlock}>Add Block</button>
+                    {blocks.map((block) => (
+                        <div key={block.id} className="block-item">
+                            <label>Units</label>
+                            <input 
+                                type="number" 
+                                placeholder="Enter units" 
+                                value={block.units}
+                                onChange={(e) => handleBlockChange(block.id, 'units', e.target.value)}
+                            />
+                            
+                            <label>Location</label>
+                            <input 
+                                type="text" 
+                                placeholder="Enter the location"
+                                value={block.location}
+                                onChange={(e) => handleBlockChange(block.id, 'location', e.target.value)}
+                            />
+
+                            <label>Specificity</label>
+                            <input 
+                                type="text" 
+                                placeholder="Enter specificity"
+                                value={block.specificity}
+                                onChange={(e) => handleBlockChange(block.id, 'specificity', e.target.value)}
+                            />
+
+                            <button type="button" onClick={() => deleteBlock(block.id)}>Delete Block</button>
+                        </div>
+                    ))}
+                </div>
+
+                <button type='submit'>Upload</button>
             </form>
+
+            {uploadSuccess && <p>File uploaded successfully!</p>}
+
+            {/* <h2>Uploaded Images</h2>
+            <div className="image-grid">
+                {images.length > 0 ? (
+                    images.map((image) => (
+                        <div key={image._id} className="image-item">
+                            <img
+                                src={`http://localhost:5000/image/${image.filename}`}
+                                alt={image.filename}
+                                style={{ width: '200px', height: 'auto' }}
+                            />
+                            <p>{image.filename}</p>
+                            {image.metadata && (
+                                <>
+                                <p>Item Name: {image.metadata.itemName}</p>
+                                <p>Amount: {image.metadata.amount}</p>
+                                <p>Units: {image.metadata.units}</p>
+                                <p>Bought Date: {image.metadata.boughtDate}</p>
+                                <p>Expiry Date: {image.metadata.expiriyDate}</p>
+                                <p>Guarantee: {image.metadata.guarantee}</p>
+                                <p>Product Link: <a href={image.metadata.productLink} target="_blank" rel="noopener noreferrer">View Product</a></p>
+                            
+                                {/* Handle blocks rendering */}
+                                {/* <p>Blocks:</p>
+                                <ul>
+                                    {(typeof image.metadata.blocks === "string"
+                                        ? JSON.parse(image.metadata.blocks) // If blocks is a string, parse it
+                                        : image.metadata.blocks // If blocks is an object, use it directly
+                                    ).map((block) => (
+                                        <li key={block.id}>
+                                            <p>Block ID: {block.id}</p>
+                                            <p>Units: {block.units}</p>
+                                            <p>Location: {block.location}</p>
+                                            <p>Specificity: {block.specificity}</p>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </>
+                            
+                            
+                            )}
+                        </div>
+                    ))
+                ) : (
+                    <p>No images uploaded yet</p>
+                )}
+            </div> */} 
         </div>
     );
 }
