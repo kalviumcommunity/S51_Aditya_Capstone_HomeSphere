@@ -46,5 +46,11 @@ Once the application is up and running, you can start using it immediately. Foll
 
 Contributions to the Home Inventory Management System are welcome! If you find any issues or have suggestions for improvements, please feel free to open an issue or submit a pull request on GitHub.
 
+## Deployed Backend
+
+The backend of the Home Inventory Management System is deployed and can be accessed at the following link:
+
+[Backend Server](https://s51-aditya-capstone-homework.onrender.com/)
+
 
 
