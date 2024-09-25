@@ -108,6 +108,10 @@ app.get('/image/:filename', async (req, res) => {
     }
 });
 
+app.get('/health', (req, res) => {
+    res.json({ status: 'UP' });
+});
+
 app.listen(port, () => {
     console.log(`Listening on port ${port}`);
 });
