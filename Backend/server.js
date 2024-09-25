@@ -108,8 +108,10 @@ app.get('/image/:filename', async (req, res) => {
 
         // Check if the file is an image
         if (file.contentType === 'image/jpeg' || file.contentType === 'image/png') {
+            //reading the file data and downloading it to display in frontend
             const readStream = gridFsBucket.openDownloadStreamByName(file.filename);
             res.set('Content-Type', file.contentType);
+            // piping it
             readStream.pipe(res);
         } else {
             return res.status(404).json({ err: 'Not an image' });
