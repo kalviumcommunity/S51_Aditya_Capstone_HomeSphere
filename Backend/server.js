@@ -38,11 +38,23 @@ const storage = new GridFsStorage({
                 if (err) {
                     return reject(err);
                 }
+                
                 const filename = buf.toString('hex') + path.extname(file.originalname);
+
+                // Ensure blocks is valid JSON
+                let blocks = [];
+                try {
+                    blocks = req.body.blocks ? JSON.parse(req.body.blocks) : [];
+                } catch (parseErr) {
+                    console.error("Error parsing blocks:", parseErr);
+                    return reject(parseErr); // If parsing fails, reject the promise
+                }
+
                 const fileInfo = {
                     filename: filename,
                     bucketName: 'final',
                     metadata: {
+                        uniqueIdentifier: req.body.uniqueIdentifier,
                         originalname: file.originalname,
                         itemName: req.body.itemName,
                         amount: req.body.amount,
@@ -51,7 +63,7 @@ const storage = new GridFsStorage({
                         expiriyDate: req.body.expiriyDate,
                         guarantee: req.body.guarantee,
                         productLink: req.body.productLink,
-                        blocks: JSON.parse(req.body.blocks)
+                        blocks: blocks, // Properly parsed blocks
                     }
                 };
                 resolve(fileInfo);
@@ -60,14 +72,14 @@ const storage = new GridFsStorage({
     }
 });
 
+
 const upload = multer({ storage });
 
-
-// File upload endpoint
-app.post('/upload', upload.single('images'), (req, res) => {
-    console.log(req.body); 
-    console.log(req.file); 
-    res.json({ file: req.file });
+// File upload endpoint for multiple images
+app.post('/upload', upload.array('images', 10), (req, res) => {
+    console.log(req.body); // Log the metadata
+    console.log(req.files); // Log the uploaded files
+    res.json({ files: req.files });
 });
 
 
