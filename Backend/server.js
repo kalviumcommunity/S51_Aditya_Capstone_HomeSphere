@@ -113,15 +113,11 @@ app.get('/image/:filename', async (req, res) => {
             readStream.pipe(res);
         } else {
             return res.status(404).json({ err: 'Not an image' });
-        }
+        }           
     } catch (err) {
         console.error('Error finding file:', err);
         res.status(500).json({ err: 'Server error' });
     }
-});
-
-app.get('/health', (req, res) => {
-    res.json({ status: 'UP' });
 });
 
 app.listen(port, () => {
