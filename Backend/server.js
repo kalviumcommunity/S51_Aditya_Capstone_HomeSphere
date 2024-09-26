@@ -77,8 +77,8 @@ const upload = multer({ storage });
 
 // File upload endpoint for multiple images
 app.post('/upload', upload.array('images', 10), (req, res) => {
-    console.log(req.body); // Log the metadata
-    console.log(req.files); // Log the uploaded files
+    console.log(req.body);
+    console.log(req.files); 
     res.json({ files: req.files });
 });
 

@@ -29,7 +29,7 @@ function ItemFormat() {
         formData.append("expiriyDate", data.expiriyDate);
         formData.append("guarantee", data.guarantee);
         formData.append("productLink", data.productLink);
-        formData.append("blocks", JSON.stringify(blocks)); // Make sure blocks are serialized properly
+        formData.append("blocks", JSON.stringify(blocks));
     
         try {
             const response = await axios.post("http://localhost:5000/upload", formData, {
