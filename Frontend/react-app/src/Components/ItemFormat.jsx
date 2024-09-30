@@ -186,7 +186,6 @@ function ItemFormat() {
 
                 <button type='submit'>Upload</button>
             </form>
-
             {uploadSuccess && <p>File uploaded successfully!</p>}
         </div>
     );

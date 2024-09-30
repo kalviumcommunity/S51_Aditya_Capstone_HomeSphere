@@ -5,13 +5,14 @@ import {BrowserRouter, Route, Routes} from 'react-router-dom'
 import NavBar from './Components/Navbar'
 import Inventory from './Components/Inventory'
 
+// initialized frontend
+
 function App() {
 
   return (
     <>
  <BrowserRouter>
     <NavBar/>
-
       <Routes>
         {/* <Route path='/' element={<Home/>}/> */}
         {/* <Route path='/After' element={<After />}/> */}

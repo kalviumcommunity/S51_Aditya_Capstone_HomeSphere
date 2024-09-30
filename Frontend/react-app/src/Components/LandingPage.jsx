@@ -1,7 +1,8 @@
 import React from 'react';
 import './LandingPage.css'
 import logo from '../assets/logo-no-background.png'
-import first from '../assets/first.png'
+import first from '../assets/first.png' 
+
 
 function LandingPage(props) {
   return (
