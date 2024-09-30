@@ -4,6 +4,7 @@ import './App.css'
 import {BrowserRouter, Route, Routes} from 'react-router-dom'
 import NavBar from './Components/Navbar'
 import Inventory from './Components/Inventory'
+import LandingPage from './Components/LandingPage'
 
 function App() {
 
@@ -17,6 +18,7 @@ function App() {
         {/* <Route path='/After' element={<After />}/> */}
         <Route path='/inventory' element={<Inventory/>}/>
         {/* <Route path='/item' element={<ItemFormat/>} /> */}
+        {/* <Route path='landingPage' element={<LandingPage />} /> */}
       </Routes>
     </BrowserRouter>    </>
   )
