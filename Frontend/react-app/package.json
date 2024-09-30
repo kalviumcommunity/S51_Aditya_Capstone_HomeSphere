@@ -1,5 +1,5 @@
 {
-  "name": "react-app",
+  "name": "react-app", 
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -16,7 +16,7 @@
     "react-dom": "^18.2.0",
     "react-hook-form": "^7.52.0",
     "react-router-dom": "^6.23.1",
-    "uuid": "^10.0.0"
+    "uuid": "^10.0.0" 
   },
   "devDependencies": {
     "@types/react": "^18.2.66",

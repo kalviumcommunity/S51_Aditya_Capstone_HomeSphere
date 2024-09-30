@@ -22,14 +22,6 @@ function NavBar() {
     return (
         <>
             <div className='navBar'>
-
-                {/* <div>
-                {isAuthenticated ? <div>
-                    <img src={user.picture} alt='profile'></img> 
-                    <p>{user.name}</p>
-                </div> 
-                : "profile"}
-                </div> */}
                 
                 <div className='logo-container'>
                     <div>
