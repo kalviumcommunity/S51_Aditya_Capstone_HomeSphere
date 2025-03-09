@@ -122,6 +122,70 @@ app.get('/image/:filename', async (req, res) => {
     }
 });
 
+// Delete a specific image by filename
+app.delete('/delete/:filename', async (req, res) => {
+    try {
+        const { filename } = req.params;
+
+        const file = await gfs.files.findOne({ filename });
+        if (!file) {
+            return res.status(404).json({ message: "File not found" });
+        }
+
+        // Delete file from GridFS
+        await gridFsBucket.delete(file._id);
+
+        res.json({ message: "Image deleted successfully" });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Server error while deleting image" });
+    }
+});
+
+// Update item metadata and add new images
+app.put('/update/:id', upload.array('images', 10), async (req, res) => {
+    try {
+        const { id } = req.params;
+        const updatedData = req.body;
+
+        // Validate ObjectId
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({ message: "Invalid ObjectId format" });
+        }
+
+        // Find the existing file
+        const file = await gfs.files.findOne({ _id: new mongoose.Types.ObjectId(id) });
+        if (!file) {
+            return res.status(404).json({ message: "File not found" });
+        }
+
+        // Merge new images if uploaded
+        const newImages = req.files.map((file) => file.filename);
+        const updatedMetadata = {
+            ...file.metadata,
+            ...updatedData,
+            filenames: [...(file.metadata?.filenames || []), ...newImages],
+        };
+
+        // Update metadata
+        const result = await gfs.files.updateOne(
+            { _id: new mongoose.Types.ObjectId(id) },
+            { $set: { metadata: updatedMetadata } }
+        );
+
+        if (result.modifiedCount === 0) {
+            return res.status(404).json({ message: "Item not updated" });
+        }
+
+        res.json({ message: "Item updated successfully", updatedMetadata });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Server error while updating item" });
+    }
+});
+
+
 app.listen(port, () => {
     console.log(`Listening on port ${port}`);
 });
+

@@ -1,93 +1,68 @@
-import React, { useState, useEffect, useRef } from 'react';
-import './Inventory.css';
-import ItemFormat from './ItemFormat';
-import axios from 'axios';
+import React, { useState, useEffect } from "react";
+import "./Inventory.css";
+import ItemFormat from "./ItemFormat";
+import axios from "axios";
 
-const initialState = [
-  { category: 'Electronics', data: 'Laptop', amount: 10, second: 'pcs' },
-];
-
-const categories = ['Electronics', 'Furniture', 'Clothing', 'Tools']; // Define sidebar categories
-const subcategories = ['Expired']; // Define sidebar subcategories
+const categories = ["Electronics", "Furniture", "Clothing", "Tools"];
+const subcategories = ["Expired"];
 
 function Inventory() {
-  const [inventoryItems, setInventoryItems] = useState(initialState);
-  const [searchTerm, setSearchTerm] = useState('');
-  const sidebarRef = useRef(null);
+  const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [images, setImages] = useState([]);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editingItem, setEditingItem] = useState(null);
   const [groupedImages, setGroupedImages] = useState({});
-  const [currentImageIndex, setCurrentImageIndex] = useState({}); // To track the current image index for each group
-
-  const handleSearchChange = (event) => {
-    setSearchTerm(event.target.value.toLowerCase());
-  };
-
-  const handleAddItem = () => {
-    // Implement logic to open a modal or form for adding new items
-    console.log('Add item button clicked');
-  };
-
-  const filteredItems = inventoryItems.filter((item) =>
-    item.category.toLowerCase().includes(searchTerm) ||
-    item.data.toLowerCase().includes(searchTerm)
-  );
+  const [currentImageIndex, setCurrentImageIndex] = useState({});
 
   useEffect(() => {
-    const fetchImages = async () => {
-      try {
-        const response = await axios.get('http://localhost:5000/inventory');
-        setImages(response.data);
-        console.log('Fetched Images:', response.data);
-
-        // After fetching images, group them by uniqueIdentifier
-        const grouped = response.data.reduce((acc, image) => {
-          const uniqueIdentifier = image.metadata.uniqueIdentifier;
-          if (!acc[uniqueIdentifier]) {
-            acc[uniqueIdentifier] = {
-              metadata: image.metadata,
-              images: [],
-            };
-          }
-          acc[uniqueIdentifier].images.push(image);
-          return acc;
-        }, {});
-
-        setGroupedImages(grouped);
-
-        // Initialize currentImageIndex for each group
-        const initialIndexes = {};
-        Object.keys(grouped).forEach((uniqueIdentifier) => {
-          initialIndexes[uniqueIdentifier] = 0;
-        });
-        setCurrentImageIndex(initialIndexes);
-      } catch (error) {
-        console.error('Error fetching images:', error);
-      }
-    };
-
     fetchImages();
   }, []);
 
-  const handleSidebarScroll = (event) => {
-    if (sidebarRef.current && sidebarRef.current.contains(event.target)) {
-      // Scrolling within sidebar
-      event.stopPropagation(); // Prevent event from bubbling up to the document
-    } else {
-      // Scrolling outside sidebar (reset scroll position)
-      sidebarRef.current.scrollTop = 0;
+  const fetchImages = async () => {
+    try {
+      const response = await axios.get("http://localhost:5000/inventory");
+      const grouped = response.data.reduce((acc, image) => {
+        const uniqueIdentifier = image.metadata.uniqueIdentifier;
+        if (!acc[uniqueIdentifier]) {
+          acc[uniqueIdentifier] = {
+            metadata: image.metadata,
+            images: [],
+          };
+        }
+        acc[uniqueIdentifier].images.push(image);
+        return acc;
+      }, {});
+
+      setGroupedImages(grouped);
+
+      const initialIndexes = {};
+      Object.keys(grouped).forEach((uniqueIdentifier) => {
+        initialIndexes[uniqueIdentifier] = 0;
+      });
+      setCurrentImageIndex(initialIndexes);
+    } catch (error) {
+      console.error("Error fetching images:", error);
     }
   };
 
-  useEffect(() => {
-    document.addEventListener('scroll', handleSidebarScroll);
-
-    return () => document.removeEventListener('scroll', handleSidebarScroll);
-  }, []);
-
-  // Function to toggle the modal state
   const toggleModal = () => {
+    if (!isModalOpen) {
+      // Opening the modal
+      setIsEditMode(false);
+      setEditingItem(null);
+    }
     setIsModalOpen((prevState) => !prevState);
+  };
+  
+
+  const handleEditItem = (group) => {
+    setEditingItem({
+      _id: group.images[0]._id,
+      metadata: group.metadata,
+      images: group.images.map((img) => img.filename),
+    });
+    setIsEditMode(true);
+    setIsModalOpen(true);
   };
 
   const handleNextImage = (uniqueIdentifier) => {
@@ -109,175 +84,88 @@ function Inventory() {
 
   return (
     <div className="inventory-container">
-      {/* <NavBar /> */}
-      <div className="inventory-wrapper" ref={sidebarRef}>
+      <div className="inventory-wrapper">
+        {/* Sidebar */}
         <div className="sidebar">
-          <h2>Inventory Categories</h2>
-          <div className="sidebar-scrollable">
-            <ul>
-              {categories.map((category) => (
-                <li key={category}>{category}</li>
-              ))}
-            </ul>
-          </div>
-          <div className="sidebar-fixed">
-            <ul>
-              {subcategories.map((subcategory) => (
-                <li key={subcategory}>{subcategory}</li>
-              ))}
-            </ul>
-          </div>
-        </div>
-        <div className="inventory-main">
-          <div className="search-bar">
-            <input
-              type="text"
-              placeholder="Search inventory..."
-              value={searchTerm}
-              onChange={handleSearchChange}
-            />
-          </div>
-          <div>
+        <div className="header-bar">
             <h1>Inventory</h1>
-            <button onClick={toggleModal}>Add Item</button>
+          </div>
+          <h2>Categories</h2>
+          <ul>
+            {categories.map((category) => (
+              <li key={category}>{category}</li>
+            ))}
+          </ul>
+        </div>
 
-            {/* Render ItemFormat component as a modal */}
-            {isModalOpen && (
-              <div className="modal-container">
-                <div className="modal-header">
-                  <div className="modal-title">Add new Item</div>
-                  <div className="close-button-container">
-                    <button onClick={toggleModal}>X</button>
-                  </div>
-                </div>
-                <div className="modal-body">
-                  <ItemFormat />
-                </div>
-              </div>
-            )}
+        {/* Main Content */}
+        <div className="inventory-main">
+
+          <div className="search-bar">
+            <input type="text" placeholder="Search inventory..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value.toLowerCase())} />
+            <button className="add-btn" onClick={toggleModal}>+ Add Item</button>
           </div>
 
-          <div
-            className="image-grid"
-            style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}
-          >
+          <div className="image-grid">
             {Object.keys(groupedImages).length > 0 ? (
-              Object.entries(groupedImages).map(([uniqueIdentifier, group]) => (
-                <div
-                  key={uniqueIdentifier}
-                  className="image-group"
-                  style={{
-                    backgroundColor: '#fff',
-                    border: '1px solid #ddd',
-                    borderRadius: '8px',
-                    padding: '10px',
-                    width: '100%',
-                    boxSizing: 'border-box',
-                  }}
-                >
-                  <div className="metadata" style={{ marginBottom: '10px' }}>
-                    <h3>Item Name: {group.metadata.itemName}</h3>
-                    <p>Amount: {group.metadata.amount}</p>
-                    <p>Units: {group.metadata.units}</p>
-                    <p>Bought Date: {group.metadata.boughtDate}</p>
-                    <p>Expiry Date: {group.metadata.expiriyDate}</p>
-                    <p>Guarantee: {group.metadata.guarantee}</p>
-                    <p>
-                      Product Link:{' '}
-                      <a
-                        href={group.metadata.productLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        View Product
-                      </a>
-                    </p>
-                    {/* Handle blocks rendering */}
-                    <p>Blocks:</p>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
-                      {(typeof group.metadata.blocks === 'string'
-                        ? JSON.parse(group.metadata.blocks) // If blocks is a string, parse it
-                        : group.metadata.blocks // If blocks is an object, use it directly
-                      ).map((block) => (
-                        <div
-                          key={block.id}
-                          style={{
-                            border: '1px solid #ddd',
-                            borderRadius: '5px',
-                            padding: '5px',
-                            flex: '1 1 150px', // Adjust the size of block items
-                            margin: '5px',
-                          }}
-                        >
-                          <p>Block ID: {block.id}</p>
-                          <p>Units: {block.units}</p>
-                          <p>Location: {block.location}</p>
-                          <p>Specificity: {block.specificity}</p>
+                Object.entries(groupedImages).map(([uniqueIdentifier, group]) => (
+                    <div key={uniqueIdentifier} className="image-group">
+                        {/* Image Section (Left) */}
+                        {/* Image Carousel (Left) */}
+                        {/* Image Carousel in Inventory List */}
+<div className="image-carousel">
+    <button className="carousel-btn prev-btn" onClick={() => handlePrevImage(uniqueIdentifier)}>❮</button>
+    <div className="inventory-image-item">
+        <img src={`http://localhost:5000/image/${group.images[currentImageIndex[uniqueIdentifier]].filename}`} alt="Item" />
+    </div>
+    <button className="carousel-btn next-btn" onClick={() => handleNextImage(uniqueIdentifier)}>❯</button>
+</div>
+
+
+                        {/* Details Section (Right) */}
+                        <div className="metadata">
+                            <h3>{group.metadata.itemName}</h3>
+                            <p>Amount: {group.metadata.amount} {group.metadata.units}</p>
+                            <p>Bought Date: {group.metadata.boughtDate || "N/A"}</p>
+                            <p>Expiry Date: {group.metadata.expiriyDate || "N/A"}</p>
+
+                            
                         </div>
-                      ))}
+                        <div>
+                          {/* Edit Button */}
+                          <button className="edit-btn" onClick={() => handleEditItem(group)}>Edit</button>
+                        </div>
                     </div>
-                  </div>
-
-                  {/* Image carousel */}
-                  <div
-                    className="image-carousel"
-                    style={{ display: 'flex', alignItems: 'center' }}
-                  >
-                    <button onClick={() => handlePrevImage(uniqueIdentifier)}>Prev</button>
-                    <div className="image-item" style={{ margin: '0 10px' }}>
-                      <img
-                        src={`http://localhost:5000/image/${
-                          group.images[currentImageIndex[uniqueIdentifier]].filename
-                        }`}
-                        alt={group.images[currentImageIndex[uniqueIdentifier]].filename}
-                        style={{ width: '300px', height: 'auto', borderRadius: '8px' }}
-                      />
-                      <p>{group.images[currentImageIndex[uniqueIdentifier]].filename}</p>
-                    </div>
-                    <button onClick={() => handleNextImage(uniqueIdentifier)}>Next</button>
-                  </div>
-
-                  {/* Thumbnails */}
-                  <div
-                    className="thumbnails"
-                    style={{ display: 'flex', gap: '10px', marginTop: '10px' }}
-                  >
-                    {group.images.map((image, index) => (
-                      <img
-                        key={image._id}
-                        src={`http://localhost:5000/image/${image.filename}`}
-                        alt={image.filename}
-                        style={{
-                          width: '80px',
-                          height: 'auto',
-                          borderRadius: '5px',
-                          border:
-                            currentImageIndex[uniqueIdentifier] === index
-                              ? '2px solid blue'
-                              : '1px solid #ddd',
-                          cursor: 'pointer',
-                        }}
-                        onClick={() =>
-                          setCurrentImageIndex((prevState) => ({
-                            ...prevState,
-                            [uniqueIdentifier]: index,
-                          }))
-                        }
-                      />
-                    ))}
-                  </div>
-                </div>
-              ))
+                ))
             ) : (
-              <p>No images uploaded yet</p>
+                <p>No items available.</p>
             )}
-          </div>
+        </div>
+
         </div>
       </div>
+
+      {/* Modal - This should appear on Add/Edit */}
+      {isModalOpen && (
+        <div className="modal-overlay">
+          <div className="modal">
+            {/* <div className="modal-header">
+              <p>{isEditMode ? "Edit Item" : "Add Item"}</p>
+              <button className="close-btn" onClick={toggleModal}>×</button>
+            </div> */}
+            <div className="modal-body">
+              <ItemFormat
+                isEditMode={isEditMode}
+                editingItem={editingItem}
+                onUpdateSuccess={fetchImages}
+                closeModal={toggleModal}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
-
-
 
 export default Inventory;
