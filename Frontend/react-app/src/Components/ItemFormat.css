@@ -1,54 +1,215 @@
-
-
-.form-container{
+.form-container {
     display: flex;
     flex-direction: column;
     gap: 20px;
+    background: #fff8f0;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    max-width: 100%; /* Prevents overflowing outside modal */
+    overflow-x: hidden; /* Hides horizontal scroll */
 }
-.primary-details{
+
+
+/* Form Headings */
+.form-container h2 {
+    font-size: 24px;
+    font-weight: bold;
+    color: #e65c00;
+    text-align: center;
+    margin-bottom: 10px;
+}
+form{
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+/* Form Sections */
+.form-row {
     display: flex;
     justify-content: space-between;
-    background-color: rgb(139, 233, 240);
-    border: 1px solid black;
-    padding: 2%;
+    gap: 20px;
+    margin-bottom: 40px;
 }
-.left-details{
+
+/* Top Left - Item Name, Amount, Units */
+.top-left {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* Top Right - Dates & Link */
+.top-right {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* Input Styling */
+input[type="text"], 
+input[type="number"], 
+input[type="date"], 
+input[type="file"] {
+    width: 100%; /* Ensures they stay inside form */
+    /* max-width: 900px; Prevents overflowing */
+    padding: 10px;
+    border: 2px solid #ff8c1a;
+    border-radius: 6px;
+    font-size: 16px;
+    outline: none;
+    transition: border 0.3s ease-in-out;
+    box-sizing: border-box; /* Prevents extra width */
+}
+
+input:focus {
+    border-color: #cc7000;
+}
+
+/* Delete Button for Each Image */
+.delete-btn {
+    background: #ff4500;
+    color: white;
+    padding: 6px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.delete-btn:hover {
+    background: #cc3700;
+}
+
+/* Blocks Section - Full Width */
+.blocks-container {
+    background: #ffe6cc;;
+    padding: 12px;
+    border-radius: 8px;
     display: flex;
     flex-direction: column;
     gap: 10px;
-    /* background-color: bisque; */
-    padding: 2%;
-
 }
-.left-bottom-details{
+
+
+.text-block {
+    font-size: 22px;
+    font-weight: bold;
+    color: #e65c00; /* Dark Orange */
+    text-align: left;
+    margin: 10px 0; /* Space around the heading */
+    padding-bottom: 5px;
+    border-bottom: 2px solid #ff8c00; /* Adds an underline effect */
+}
+
+/* Each Block - Full Row */
+.block-item {
+    display: flex;
+    align-items: center;
+    width: calc(100% - 24px); /* 100% minus the total horizontal padding */
+    background: #ffcc80;
+    padding: 10px;
+    border-radius: 6px;
+    gap: 10px;
+}
+
+
+/* Block Inputs */
+.block-item input {
+    flex: 1;
+    overflow: hidden;
+}
+
+/* Block Buttons */
+.block-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.block-buttons button {
+    background: #ff4500;
+    color: white;
+    padding: 6px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.block-buttons button:hover {
+    background: #cc3700;
+}
+
+/* Upload/Update Button */
+.submit-btn {
+    background: #ff4500;
+    font-weight: bold;
+    padding: 14px;
+    width: 100%;
+    text-align: center;
+    margin-top: 10px;
+}
+
+.submit-btn:hover {
+    background: #cc3700;
+}
+
+/* Modal Header */
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #ff8c00;
+}
+
+.modal-header p {
+    font-size: 22px;
+    font-weight: bold;
+    color: #e65c00;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 24px;
+    font-weight: bold;
+    color: #ff4500;
+    cursor: pointer;
+}
+
+.close-btn:hover {
+    color: #cc3700;
+}
+.modal-image-section {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: flex-start;
+    width: 100%;
+    max-width: 100%;
+    padding: 10px 0;
+    overflow: hidden;
+}
+
+.modal-image-item {
+    flex: 0 1 calc(25% - 10px); /* 4 images per row */
+    max-width: calc(25% - 10px);
     display: flex;
     flex-direction: column;
-    /* background-color: rgb(3, 102, 102); */
-    padding: 2%;
+    align-items: center;
 }
-.left-top-details{
-    /* background-color: burlywood; */
-    padding: 2%;
 
+.modal-image-item img {
+    width: 100%;
+    max-width: 120px;
+    height: auto;
+    border-radius: 6px;
+    object-fit: cover;
+    transition: transform 0.3s;
 }
-.right-details{
-    /* background-color: darkgrey; */
-    padding: 2%;
 
-}
-.right-bottom-details{
-    display: flex;
-    flex-direction: column;
-    /* background-color: seashell; */
-    padding: 2%;
-
-}
-.right-top-details{
-    /* background-color: skyblue; */
-    padding: 2%;
-
-}
-.secondary-details{
-    background-color: aqua;
-    padding: 4%;
+.modal-image-item img:hover {
+    transform: scale(1.05);
 }

@@ -1,25 +1,27 @@
-import React, { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import axios from 'axios';
-import { v4 as uuidv4 } from 'uuid'; // Use this package to generate unique IDs
+import React, { useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
+import axios from "axios";
+import { v4 as uuidv4 } from "uuid";
+import './ItemFormat.css';
 
-function ItemFormat() {
-    const { register, handleSubmit, formState: { errors } } = useForm();
-    const [selectedFiles, setSelectedFiles] = useState([]); // Initialize as an array
-    const [uploadSuccess, setUploadSuccess] = useState(false);
-    const [blocks, setBlocks] = useState([{ id: 1, units: '', location: '', specificity: '' }]);
-    
+function ItemFormat({ isEditMode, editingItem, onUpdateSuccess, closeModal }) {
+    const { register, handleSubmit, setValue } = useForm();
+    const [selectedFiles, setSelectedFiles] = useState([]);
+    const [existingImages, setExistingImages] = useState([]);
+    const [blocks, setBlocks] = useState([{ id: 1, units: "", location: "", specificity: "" }]);
+
+    // Load existing item details in edit mode
+    useEffect(() => {
+        if (isEditMode && editingItem) {
+            Object.entries(editingItem.metadata).forEach(([key, value]) => setValue(key, value));
+            setExistingImages(editingItem.images || []);
+        }
+    }, [isEditMode, editingItem, setValue]);
+
     const onSubmit = async (data) => {
         const formData = new FormData();
-        const uniqueIdentifier = uuidv4(); // Generate a unique identifier
-    
-        // Append multiple images
-        if (selectedFiles.length > 0) {
-            selectedFiles.forEach((file) => {
-                formData.append("images", file);
-            });
-        }
-    
+        const uniqueIdentifier = isEditMode ? editingItem.metadata.uniqueIdentifier : uuidv4();
+
         // Append metadata fields
         formData.append("uniqueIdentifier", uniqueIdentifier);
         formData.append("itemName", data.itemName);
@@ -30,165 +32,165 @@ function ItemFormat() {
         formData.append("guarantee", data.guarantee);
         formData.append("productLink", data.productLink);
         formData.append("blocks", JSON.stringify(blocks));
-    
+
+        // Append new images if selected
+        selectedFiles.forEach((file) => formData.append("images", file));
+
         try {
-            const response = await axios.post("http://localhost:5000/upload", formData, {
-                headers: {
-                    "Content-Type": "multipart/form-data",
-                },
-            });
-    
-            if (response.status === 200) {
-                setUploadSuccess(true);
-                console.log("Files uploaded successfully:", response.data);
+            if (isEditMode) {
+                // Update existing item
+                await axios.put(`http://localhost:5000/update/${editingItem._id}`, formData, {
+                    headers: { "Content-Type": "multipart/form-data" },
+                });
+                alert("Item updated successfully!");
             } else {
-                console.error("Failed to upload files");
+                // Create new item
+                await axios.post("http://localhost:5000/upload", formData, {
+                    headers: { "Content-Type": "multipart/form-data" },
+                });
+                alert("Item added successfully!");
             }
+
+            onUpdateSuccess();
+            closeModal();
         } catch (error) {
-            console.error("Error during upload:", error);
+            console.error("Error uploading/updating item:", error);
         }
     };
-    
-    
+
+    // Handle new image selection
     const handleFileChange = (e) => {
-        const files = Array.from(e.target.files); // Convert FileList to an array
-        setSelectedFiles([...selectedFiles, ...files]); // Update selectedFiles array
+        const files = Array.from(e.target.files);
+        setSelectedFiles([...selectedFiles, ...files]);
     };
 
+    // Delete an existing image
+    const handleDeleteImage = async (filename) => {
+        try {
+            await axios.delete(`http://localhost:5000/delete/${filename}`);
+            setExistingImages(existingImages.filter((img) => img !== filename));
+            alert("Image deleted successfully");
+        } catch (error) {
+            console.error("Error deleting image:", error);
+        }
+    };
+
+    // Handle block changes
     const handleBlockChange = (id, field, value) => {
-        setBlocks(blocks.map(block =>
-            block.id === id ? { ...block, [field]: value } : block
-        ));
+        setBlocks(blocks.map((block) => (block.id === id ? { ...block, [field]: value } : block)));
     };
 
+    // Add a new block
     const addBlock = () => {
-        setBlocks([...blocks, { id: blocks.length + 1, units: '', location: '', specificity: '' }]);
+        setBlocks([...blocks, { id: blocks.length + 1, units: "", location: "", specificity: "" }]);
     };
 
+    // Delete a block
     const deleteBlock = (id) => {
-        setBlocks(blocks.filter(block => block.id !== id));
+        setBlocks(blocks.filter((block) => block.id !== id));
     };
 
     return (
-        <div>
-            <h2>Upload Item</h2>
-            <form onSubmit={handleSubmit(onSubmit)}>
-                <div>
-                    <label htmlFor='itemName'>Enter your item name</label>
-                    <input
-                        type='text'
-                        placeholder='Enter item name'
-                        id='itemName'
-                        {...register("itemName", { required: true })}
-                    />
-                    {errors.itemName && <span>This field is required</span>}
-                </div>
+        <div className="form-container">
+    {/* Modal Header */}
+    <div className="modal-header">
+        <p>{isEditMode ? "Edit Item" : "Upload Item"}</p>
+        <button className="close-btn" onClick={closeModal}>×</button>
+    </div>
 
-                <div>
-                    <label htmlFor='amount'>Enter amount</label>
-                    <input
-                        type='number'
-                        placeholder='Enter amount'
-                        id='amount'
-                        {...register("amount", { required: true })}
-                    />
-                    {errors.amount && <span>This field is required</span>}
-                </div>
+    <form onSubmit={handleSubmit(onSubmit)}>
 
-                <div>
-                    <label htmlFor='units'>Enter units</label>
-                    <input
-                        type='number'
-                        placeholder='Enter units'
-                        id='units'
-                        {...register("units", { required: true })}
-                    />
-                    {errors.units && <span>This field is required</span>}
-                </div>
+        {/* Top Section */}
+        <div className="form-row">
+            {/* Left - Name, Amount, Units */}
+            <div className="top-left">
+                <label>Item Name</label>
+                <input type="text" {...register("itemName", { required: true })} />
 
-                <div>
-                    <label htmlFor='boughtDate'>Bought Date</label>
-                    <input type='date' {...register("boughtDate")} />
-                </div>
+                <label>Amount</label>
+                <input type="number" {...register("amount", { required: true })} />
 
-                <div>
-                    <label htmlFor='expiriyDate'>Expiry Date</label>
-                    <input type='date' {...register("expiriyDate", { required: false })} />
-                    {errors.expiriyDate && <span>This field is required</span>}
-                </div>
+                <label>Units</label>
+                <input type="number" {...register("units", { required: true })} />
+            </div>
 
-                <div>
-                    <label htmlFor='guarantee'>Guarantee (years, months, days)</label>
-                    <input type='text' placeholder='Enter guarantee period' {...register("guarantee")} />
-                </div>
+            {/* Right - Dates & Link */}
+            <div className="top-right">
+                <label>Bought Date</label>
+                <input type="date" {...register("boughtDate")} />
 
-                <div>
-                    <label htmlFor='productLink'>Product Link</label>
-                    <input type='text' placeholder='Product link' {...register("productLink")} />
-                </div>
+                <label>Expiry Date</label>
+                <input type="date" {...register("expiriyDate")} />
 
-                <div>
-                    <label htmlFor='images'>Upload Images</label>
-                    <input
-                        type='file'
-                        id='images'
-                        {...register('images')}
-                        onChange={handleFileChange}
-                        multiple // Allow multiple files
-                    />
-                </div>
+                <label>Guarantee</label>
+                <input type="text" {...register("guarantee")} />
 
-                {/* Image Preview */}
-                <div className="image-preview">
-                    {selectedFiles.length > 0 && selectedFiles.map((file, index) => (
-                        <img 
-                            key={index} 
-                            src={URL.createObjectURL(file)} 
-                            alt={`Preview ${index}`} 
-                            style={{ width: '100px', margin: '10px' }}
-                        />
-                    ))}
-                </div>
-
-                <div className='blocks-section'>
-                    <h3>Blocks</h3>
-                    <button type="button" onClick={addBlock}>Add Block</button>
-                    {blocks.map((block) => (
-                        <div key={block.id} className="block-item">
-                            <label>Units</label>
-                            <input 
-                                type="number" 
-                                placeholder="Enter units" 
-                                value={block.units}
-                                onChange={(e) => handleBlockChange(block.id, 'units', e.target.value)}
-                            />
-                            
-                            <label>Location</label>
-                            <input 
-                                type="text" 
-                                placeholder="Enter the location"
-                                value={block.location}
-                                onChange={(e) => handleBlockChange(block.id, 'location', e.target.value)}
-                            />
-
-                            <label>Specificity</label>
-                            <input 
-                                type="text" 
-                                placeholder="Enter specificity"
-                                value={block.specificity}
-                                onChange={(e) => handleBlockChange(block.id, 'specificity', e.target.value)}
-                            />
-
-                            <button type="button" onClick={() => deleteBlock(block.id)}>Delete Block</button>
-                        </div>
-                    ))}
-                </div>
-
-                <button type='submit'>Upload</button>
-            </form>
-            {uploadSuccess && <p>File uploaded successfully!</p>}
+                {/* <label>Product Link</label>
+                <input type="text" {...register("productLink")} /> */}
+            </div>
         </div>
+
+                {/* Upload New Images */}
+                <div>
+                <label>Upload New Images</label> <br></br>
+                <input type="file" onChange={handleFileChange} multiple />
+                </div>
+               
+
+{/* Image Section */}
+<div className="modal-image-section">
+    {/* Existing Images (Edit Mode) */}
+    {isEditMode && existingImages.length > 0 && (
+        existingImages.map((filename) => (
+            <div key={filename} className="modal-image-item">
+                <img src={`http://localhost:5000/image/${filename}`} alt="Item" />
+                <button type="button" className="delete-btn" onClick={() => handleDeleteImage(filename)}>Delete</button>
+            </div>
+        ))
+    )}
+
+    {/* New Image Previews */}
+    {selectedFiles.length > 0 && (
+        selectedFiles.map((file, index) => (
+            <div key={index} className="modal-image-item">
+                <img src={URL.createObjectURL(file)} alt="Preview" />
+            </div>
+        ))
+    )}
+</div>
+
+
+
+
+
+        {/* Blocks Section */}
+        <div className="blocks-container">
+            <p className="text-block">Blocks</p>
+            {blocks.map((block) => (
+                <div key={block.id} className="block-item">
+                    <input type="number" placeholder="Units" value={block.units} onChange={(e) => handleBlockChange(block.id, "units", e.target.value)} />
+                    <input type="text" placeholder="Location" value={block.location} onChange={(e) => handleBlockChange(block.id, "location", e.target.value)} />
+                    <input type="text" placeholder="Specificity" value={block.specificity} onChange={(e) => handleBlockChange(block.id, "specificity", e.target.value)} />
+                    
+                    {/* Block Buttons */}
+                    <div className="block-buttons">
+                        <button type="button" onClick={() => deleteBlock(block.id)}>✖</button>
+                        <button type="button" onClick={addBlock}>+</button>
+                    </div>
+                </div>
+            ))}
+        </div>
+
+        {/* Submit Button */}
+        <button type="submit" className="submit-btn">
+            {isEditMode ? "Update Item" : "Upload Item"}
+        </button>
+
+    </form>
+</div>
+
     );
 }
 
 export default ItemFormat;
+
