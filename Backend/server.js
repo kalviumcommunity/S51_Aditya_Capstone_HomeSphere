@@ -142,6 +142,30 @@ app.delete('/delete/:filename', async (req, res) => {
     }
 });
 
+app.delete("/delete/item/:uniqueIdentifier", async (req, res) => {
+    try {
+        const { uniqueIdentifier } = req.params;
+
+        // Find all images related to this uniqueIdentifier
+        const files = await gfs.files.find({ "metadata.uniqueIdentifier": uniqueIdentifier }).toArray();
+
+        if (files.length === 0) {
+            return res.status(404).json({ message: "No images found for this item" });
+        }
+
+        // Delete each image from GridFS
+        for (const file of files) {
+            await gridFsBucket.delete(file._id);
+        }
+
+        res.json({ message: "Item and all images deleted successfully" });
+    } catch (error) {
+        console.error("Error deleting item:", error);
+        res.status(500).json({ error: "Failed to delete item" });
+    }
+});
+
+
 // Update item metadata and add new images
 app.put('/update/:id', upload.array('images', 10), async (req, res) => {
     try {

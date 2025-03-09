@@ -47,13 +47,11 @@ function Inventory() {
 
   const toggleModal = () => {
     if (!isModalOpen) {
-      // Opening the modal
       setIsEditMode(false);
       setEditingItem(null);
     }
     setIsModalOpen((prevState) => !prevState);
   };
-  
 
   const handleEditItem = (group) => {
     setEditingItem({
@@ -64,6 +62,18 @@ function Inventory() {
     setIsEditMode(true);
     setIsModalOpen(true);
   };
+
+const handleDeleteItem = async (uniqueIdentifier) => {
+    if (window.confirm("Are you sure you want to delete this item?")) {
+        try {
+            await axios.delete(`http://localhost:5000/delete/item/${uniqueIdentifier}`);
+            alert("Item deleted successfully!");
+            fetchImages(); // Refresh inventory after deletion
+        } catch (error) {
+            console.error("Error deleting item:", error);
+        }
+    }
+};
 
   const handleNextImage = (uniqueIdentifier) => {
     setCurrentImageIndex((prevState) => ({
@@ -87,7 +97,7 @@ function Inventory() {
       <div className="inventory-wrapper">
         {/* Sidebar */}
         <div className="sidebar">
-        <div className="header-bar">
+          <div className="header-bar">
             <h1>Inventory</h1>
           </div>
           <h2>Categories</h2>
@@ -100,7 +110,6 @@ function Inventory() {
 
         {/* Main Content */}
         <div className="inventory-main">
-
           <div className="search-bar">
             <input type="text" placeholder="Search inventory..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value.toLowerCase())} />
             <button className="add-btn" onClick={toggleModal}>+ Add Item</button>
@@ -108,40 +117,36 @@ function Inventory() {
 
           <div className="image-grid">
             {Object.keys(groupedImages).length > 0 ? (
-                Object.entries(groupedImages).map(([uniqueIdentifier, group]) => (
-                    <div key={uniqueIdentifier} className="image-group">
-                        {/* Image Section (Left) */}
-                        {/* Image Carousel (Left) */}
-                        {/* Image Carousel in Inventory List */}
-<div className="image-carousel">
-    <button className="carousel-btn prev-btn" onClick={() => handlePrevImage(uniqueIdentifier)}>❮</button>
-    <div className="inventory-image-item">
-        <img src={`http://localhost:5000/image/${group.images[currentImageIndex[uniqueIdentifier]].filename}`} alt="Item" />
-    </div>
-    <button className="carousel-btn next-btn" onClick={() => handleNextImage(uniqueIdentifier)}>❯</button>
-</div>
-
-
-                        {/* Details Section (Right) */}
-                        <div className="metadata">
-                            <h3>{group.metadata.itemName}</h3>
-                            <p>Amount: {group.metadata.amount} {group.metadata.units}</p>
-                            <p>Bought Date: {group.metadata.boughtDate || "N/A"}</p>
-                            <p>Expiry Date: {group.metadata.expiriyDate || "N/A"}</p>
-
-                            
-                        </div>
-                        <div>
-                          {/* Edit Button */}
-                          <button className="edit-btn" onClick={() => handleEditItem(group)}>Edit</button>
-                        </div>
+              Object.entries(groupedImages).map(([uniqueIdentifier, group]) => (
+                <div key={uniqueIdentifier} className="image-group">
+                  {/* Image Section (Left) */}
+                  <div className="image-carousel">
+                    <button className="carousel-btn prev-btn" onClick={() => handlePrevImage(uniqueIdentifier)}>❮</button>
+                    <div className="inventory-image-item">
+                      <img src={`http://localhost:5000/image/${group.images[currentImageIndex[uniqueIdentifier]].filename}`} alt="Item" />
                     </div>
-                ))
-            ) : (
-                <p>No items available.</p>
-            )}
-        </div>
+                    <button className="carousel-btn next-btn" onClick={() => handleNextImage(uniqueIdentifier)}>❯</button>
+                  </div>
 
+                  {/* Details Section (Right) */}
+                  <div className="metadata">
+                    <h3>{group.metadata.itemName}</h3>
+                    <p>Amount: {group.metadata.amount} {group.metadata.units}</p>
+                    <p>Bought Date: {group.metadata.boughtDate || "N/A"}</p>
+                    <p>Expiry Date: {group.metadata.expiriyDate || "N/A"}</p>
+                  </div>
+
+                  {/* Edit & Delete Buttons */}
+                  <div className="action-buttons">
+                    <button className="edit-btn" onClick={() => handleEditItem(group)}>Edit</button>
+                    <button className="delete-btn" onClick={() => handleDeleteItem(uniqueIdentifier)}>Delete</button>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p>No items available.</p>
+            )}
+          </div>
         </div>
       </div>
 
@@ -149,10 +154,10 @@ function Inventory() {
       {isModalOpen && (
         <div className="modal-overlay">
           <div className="modal">
-            {/* <div className="modal-header">
+            <div className="modal-header">
               <p>{isEditMode ? "Edit Item" : "Add Item"}</p>
               <button className="close-btn" onClick={toggleModal}>×</button>
-            </div> */}
+            </div>
             <div className="modal-body">
               <ItemFormat
                 isEditMode={isEditMode}
